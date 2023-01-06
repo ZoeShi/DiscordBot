@@ -20,13 +20,21 @@ class CreateTicketView(discord.ui.View):
         await interaction.response.send_message('wuff.', ephemeral=True)
 
 
+class EnableTicketModal(discord.ui.Modal, title='Ticket Aktivierung'):
+    name = discord.ui.TextInput(
+        label='name',
+        placeholder='Your name here...'
+    )
+
+
 class EnableTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
+        #self.add_item(discord.ui.TextInput(label="Wähle den Titel für das Ticket.", default="Klicke den Button um ein Ticket anzulegen. "))
 
     @discord.ui.select(cls=discord.ui.ChannelSelect, channel_types=[discord.ChannelType.text]  )
     async def select_create_ticket_channel(self, interaction: discord.Interaction, select: discord.ui.ChannelSelect):
-        pass
+        await interaction.response.send_modal(EnableTicketModal())
 
 
 class Ticket(commands.Cog):
@@ -43,6 +51,7 @@ class Ticket(commands.Cog):
         url_view.add_item(
             discord.ui.Button(label='Ticket erstellen', style=discord.ButtonStyle.url, url=ctx.message.jump_url))"""
         await ctx.send(embed=embed, view=EnableTicketView())
+
 
 
 async def setup(bot):

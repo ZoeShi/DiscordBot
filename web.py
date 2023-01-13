@@ -4,17 +4,17 @@ from lona_bootstrap_5 import PrimaryButton, TextInput
 import discord
 import config
 
-
 intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
 
-
 app = LonaApp(__file__)
+
 
 async def start_discord():
     await client.start(config.token)
+
 
 @app.middleware
 class MyMiddleware:
@@ -25,27 +25,22 @@ class MyMiddleware:
         print("test")
         return data
 
+
 @app.route('/')
 class MyView(LonaView):
     def handle_button_click(self, input_event):
-        self.message.set_text('Button clicked')
-        #hier was der Button machen soll
-
-
-    def get_channels(self):
-        return [
-            # value, label, is_selected
-            ('rip', 'rip', True),
-            ('bar', 'Bar', False),
-        ]
+        selected_message = self.create_message_input.value
+        selected_channel = self.channel.value
+        discord_channel = self.guild.get_channel(int(selected_channel))
+        self.server.run_coroutine_sync(discord_channel.send(selected_message))
 
     def get_channels_discord(self):
         self.server.run_coroutine_sync(client.wait_until_ready(), wait=True)
-        guild = client.guilds[0]
-        category = guild.get_channel(962281157251170321)
+        self.guild = client.guilds[0]
+        # category = self.guild.get_channel(962281157251170321)
         # await interaction.response.send_message('This is green.', ephemeral=True)
         channel_items = []
-        for channel in guild.channels:
+        for channel in self.guild.channels:
             channel_items.append((channel.id, channel.name, False))
         return channel_items
 
@@ -81,5 +76,6 @@ class MyView(LonaView):
             }, 1000);
         });
     """)
+
 
 app.run(port=8080)

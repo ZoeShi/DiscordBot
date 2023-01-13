@@ -1,3 +1,4 @@
+from discord import app_commands, Object
 from discord.ext import commands
 import discord
 import wikipedia
@@ -25,6 +26,11 @@ class Wikipedia(commands.Cog):
         return result
 
     @commands.command()
+    async def sync(self, ctx):
+        await self.tree.sync(guild=Object(id=962281156563320832))
+        logger.debug("sync")
+
+    @app_commands.command(name="search")
     async def search(self, ctx, search_string: str):
         wikipedia.set_lang("de")
         try:

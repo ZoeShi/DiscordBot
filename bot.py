@@ -17,7 +17,7 @@ class Bot(commands.Bot):
                 await self.load_extension(cog)
             except Exception as exc:
                 print(f'Could not load extension {cog} due to {exc.__class__.__name__}: {exc}')
-        await self.tree.sync(guild=Object(id=962281156563320832))
+        await self.tree.sync()
 
 
     async def on_ready(self):

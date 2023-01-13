@@ -30,18 +30,18 @@ class Wikipedia(commands.Cog):
         await self.tree.sync(guild=Object(id=962281156563320832))
         logger.debug("sync")
 
-    @app_commands.command(name="search")
-    async def search(self, ctx, search_string: str):
+    @app_commands.command(name="search", description="search things in wikipedia")
+    async def search(self, interaction: discord.Interaction, search_string: str):
         wikipedia.set_lang("de")
         try:
             result = self.run_search(search_string)
         except Exception as e:
             logger.error(e)
-            await ctx.send(e)
+            await interaction.response.send_message(e)
             return
         logger.info("result: %s", result)
         formatted_result = self.format_output(result)
-        await ctx.send(formatted_result)
+        await interaction.response.send_message(formatted_result)
 
 
 async def setup(bot):

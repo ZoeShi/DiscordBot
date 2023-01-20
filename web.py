@@ -3,6 +3,7 @@ from lona import LonaApp, LonaView
 from lona_bootstrap_5 import PrimaryButton, TextInput
 import discord
 import config
+import toml
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -11,28 +12,58 @@ client = discord.Client(intents=intents)
 
 app = LonaApp(__file__)
 
+@client.event
+async def on_ready():
+    config1 = toml.load("config.toml")
+    channel_id = config1["channel"]
+    print(channel_id)
+    channel = client.get_channel(channel_id)
+    print(channel)
+    client.add_view(CreateTicketView(channel, client.loop))
 
 async def start_discord():
     await client.start(config.token)
+
 
 
 @app.middleware
 class MyMiddleware:
     async def on_startup(self, data):
         server = data.server
-        print("test")
         data.server.loop.create_task(start_discord())
-        print("test")
         return data
+
+class CreateTicketView(discord.ui.View):
+    def __init__(self, channel, loop):
+        try:
+            super().__init__(timeout=None)
+        except:
+            pass
+        self._View__stopped = loop.create_future()
+        self.discord_channel = channel
+
+    @discord.ui.button(label="neues Ticket", style=discord.ButtonStyle.green, custom_id='my_view:green')
+    async def create_ticket_channel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild = interaction.guild
+        category = self.discord_channel.category
+        await category.create_text_channel('test_channel')
+        await interaction.response.send_message('TicketBot erfogreich erstellt', ephemeral=True)
 
 
 @app.route('/')
 class MyView(LonaView):
     def handle_button_click(self, input_event):
+
         selected_message = self.create_message_input.value
         selected_channel = self.channel.value
-        discord_channel = self.guild.get_channel(int(selected_channel))
-        self.server.run_coroutine_sync(discord_channel.send(selected_message))
+        channel_id = int(selected_channel)
+        config1 = toml.load("config.toml")
+        config1["channel"] = channel_id
+        with open("config.toml", "w") as config_file:
+            toml.dump(config1, config_file)
+        discord_channel = self.guild.get_channel(channel_id)
+        ticket_view = CreateTicketView(discord_channel, self.server.loop)
+        self.server.run_coroutine_sync(discord_channel.send(selected_message, view=ticket_view))
 
     def get_channels_discord(self):
         self.server.run_coroutine_sync(client.wait_until_ready(), wait=True)
